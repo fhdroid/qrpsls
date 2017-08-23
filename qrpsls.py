@@ -19,11 +19,16 @@ device = 'local_qasm_simulator'
 # uncomment below for the real thing
 #device = 'ibmqx2'
         
-# we are going to build a superpositon over all 3 qubits 
-Q_program = QuantumProgram()
+# we are going to build a superpositon over 3 qubits 
+qp = QuantumProgram()
+qp.set_api(Qconfig.APItoken, Qconfig.config["url"], verify=True) # set the APIToken and API url
+# test to see what's available
+#print(qp.available_backends())
+
+
 n = 3  # number of qubits 
-q = Q_program.create_quantum_register('q', n)
-c = Q_program.create_classical_register('c', n)
+q = qp.create_quantum_register('q', n)
+c = qp.create_classical_register('c', n)
 
 # will be set to false when the game is over
 play_game = True
@@ -39,24 +44,16 @@ def number_to_name(number):
 
 # function to convert name to number
 def name_to_number(name):
-    if name == "rock":
-        return 0
-    elif name == "paper":
-        return 1
-    elif name == "scissors":
-        return 2
-    elif name == "spock":
-        return 3
-    elif name == "lizard":
-        return 4
+    if name in the_list:
+        return the_list.index(name)
     else:
         print (name + " is not a character in RPSLS\n")
         return -1
 
 # get max value and its dictonary mapping and return the name
-def get_comp_name(result):
+def get_comp_choice():
     # quantum circuit to make a superpostion state 
-    superposition = Q_program.create_circuit('superposition', [q], [c])
+    superposition = qp.create_circuit('superposition', [q], [c])
     superposition.h(q)
     superposition.s(q[0])
     superposition.measure(q[0], c[0])
@@ -66,11 +63,14 @@ def get_comp_name(result):
     circuit_name = 'superposition'
 
     # execute the quantum circuit 
-    result = Q_program.execute([circuit_name], backend=device, shots=1000, silent = False)
+    result = qp.execute([circuit_name], device, shots=1000, max_credits=5, wait=10, timeout=240, silent = False)
     value = result.get_counts('superposition')
     choosen = max(value, key=value.get)
-	# we must map the result to the list, but we have more itmes in result, so after index 4 we start again form 0
-    list_map = {'101': the_list[0], '010': the_list[1], '110': the_list[2], '001': the_list[3], '011': the_list[4], '111': the_list[0], '100': the_list[1], '000': the_list[2]}
+	# we must map the result to the list, but we have more items in result, so after index 4 we start again form [0]
+    if (device == 'ibmqx2'):
+        list_map = {'00101': the_list[0], '00010': the_list[1], '00110': the_list[2], '00001': the_list[3], '00011': the_list[4], '00111': the_list[0], '00100': the_list[1], '00000': the_list[2]}
+    else: #want local_qasm_simulator has only 3 qubits
+        list_map = {'101': the_list[0], '010': the_list[1], '110': the_list[2], '001': the_list[3], '011': the_list[4], '111': the_list[0], '100': the_list[1], '000': the_list[2]}
     return list_map[choosen]
 
 
@@ -82,7 +82,7 @@ def rpsls(guess):
     player_number = name_to_number(guess)
     
     # compute random guess for comp_number 
-    comp_number = name_to_number(get_comp_name(result))
+    comp_number = name_to_number(get_comp_choice())
 
     # compute difference between player_number and comp_number modulo five
     winner = (5 + player_number - comp_number) % 5
