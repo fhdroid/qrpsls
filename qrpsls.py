@@ -19,7 +19,7 @@ device = 'local_qasm_simulator'
 # uncomment below for the real thing
 #device = 'ibmqx2'
         
-# we are going to build a superpositon over 3 qubits 
+# we are going to build a superpositon over n qubits 
 qp = QuantumProgram()
 qp.set_api(Qconfig.APItoken, Qconfig.config["url"], verify=True) # set the APIToken and API url
 # test to see what's available
@@ -69,7 +69,7 @@ def get_comp_choice():
 	# we must map the result to the list, but we have more items in result, so after index 4 we start again form [0]
     if (device == 'ibmqx2'):
         list_map = {'00101': the_list[0], '00010': the_list[1], '00110': the_list[2], '00001': the_list[3], '00011': the_list[4], '00111': the_list[0], '00100': the_list[1], '00000': the_list[2]}
-    else: #want local_qasm_simulator has only 3 qubits
+    else: #local_qasm_simulator has only 3 qubits
         list_map = {'101': the_list[0], '010': the_list[1], '110': the_list[2], '001': the_list[3], '011': the_list[4], '111': the_list[0], '100': the_list[1], '000': the_list[2]}
     return list_map[choosen]
 
